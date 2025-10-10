@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "argparse>=1.4.0",
-    "pathlib>=1.0.1",
     "pyyaml>=6.0.3",
 ]
 

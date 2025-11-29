@@ -4,9 +4,8 @@ from collections.abc import Iterable
 from grp import getgrnam
 from pathlib import Path
 from pwd import getpwnam
-from typing import NamedTuple, cast
-
-import filetype
+from typing import NamedTuple
+import mimetypes
 
 __all__ = [
     "ensure_uid",
@@ -20,6 +19,7 @@ __all__ = [
     "copy_top_dir",
     "convert_mode",
     "copy_or_link_file",
+    "better_guess",
 ]
 
 type Schema = dict[str | int, dict[str | int, dict[int, dict[str, str]]]]
@@ -103,13 +103,15 @@ def copytree(src: Path, dst: Path, uid: int, gid: int, mode: int):
             os.chmod(dest, mode & 0o7777)
 
 
-def copy_top_dir(src: Path, dst: Path, hard_link: bool, mime: str):
+def copy_top_dir(src: Path, dst: Path, hard_link: bool, mime: str, dry_types: bool):
     assert src.is_dir()
     for item in src.iterdir():
-        copy_or_link_file(item, dst / item.name, hard_link, mime)
+        copy_or_link_file(item, dst / item.name, hard_link, mime, dry_types=dry_types)
 
 
-def copy_dir_structure(src: Path, dst: Path, hard_link: bool, mime: str):
+def copy_dir_structure(
+    src: Path, dst: Path, hard_link: bool, mime: str, dry_types: bool
+):
     assert src.is_dir()
     base = dst / src.name
     for dir, dirs, files in src.walk():
@@ -117,16 +119,28 @@ def copy_dir_structure(src: Path, dst: Path, hard_link: bool, mime: str):
         inner = dir.relative_to(src)
         for file in files:
             copy_or_link_file(
-                dir / file, base / inner / file, hard_link, mime, parents=True
+                dir / file,
+                base / inner / file,
+                hard_link,
+                mime,
+                dry_types=dry_types,
+                parents=True,
             )
 
 
 def copy_or_link_file(
-    src: Path, dst: Path, hard_link: bool, mime: str, parents: bool = False
+    src: Path,
+    dst: Path,
+    hard_link: bool,
+    mime: str,
+    dry_types: bool = False,
+    parents: bool = False,
 ):
     try:
-        actual = cast(str, filetype.guess_mime(src))
-        if match_mime(actual, mime):
+        actual = better_guess(src)
+        if dry_types:
+            print(f'"{src}": {actual}')
+        elif match_mime(actual, mime):
             if parents:
                 os.makedirs(dst.parent, exist_ok=True)
             if hard_link:
@@ -143,3 +157,7 @@ def copy_or_link_file(
 
 def match_mime(actual: str, mime: str):
     return ("/" in mime and actual == mime) or actual.startswith(mime + "/")
+
+
+def better_guess(path: os.PathLike) -> str:
+    return mimetypes.guess_file_type(path, strict=False)[0] or "text/plain"

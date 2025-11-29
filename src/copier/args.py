@@ -25,6 +25,7 @@ class TypeArgs(NamedTuple):
     keep_structure: bool
     hard_link: bool
     mime: str
+    dry_types: bool
 
 
 type Args = InArgs | OutArgs | TypeArgs
@@ -104,6 +105,13 @@ _parser_type.add_argument(
     "-H",
     "--hard-link",
     help="Hard-link files into destination instead of copying",
+    action="store_true",
+)
+
+_parser_type.add_argument(
+    "-T",
+    "--dry-types",
+    help="Print the types of all candidate source files instead of performing the copy",
     action="store_true",
 )
 

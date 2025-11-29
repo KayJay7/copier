@@ -22,12 +22,18 @@ def type_sub():
     assert args.sub == "type"
     if args.source.is_file():
         dst = args.dest / args.source.name
-        copy_or_link_file(args.source, dst, args.hard_link, args.mime)
+        copy_or_link_file(
+            args.source, dst, args.hard_link, args.mime, dry_types=args.dry_types
+        )
     elif args.source.is_dir() and args.dest.is_dir():
         if args.keep_structure:
-            copy_dir_structure(args.source, args.dest, args.hard_link,args.mime)
+            copy_dir_structure(
+                args.source, args.dest, args.hard_link, args.mime, args.dry_types
+            )
         else:
-            copy_top_dir(args.source, args.dest, args.hard_link,args.mime)
+            copy_top_dir(
+                args.source, args.dest, args.hard_link, args.mime, args.dry_types
+            )
 
 
 def iter_config(copy_routine: Callable[[Item], None]):
@@ -55,7 +61,9 @@ def copy_in(item: Item):
 
 def copy_out(item: Item):
     try:
-        print(f'copy: {item.octal} {item.owner}:{item.group} "{item.src}"->"{item.dst}"')
+        print(
+            f'copy: {item.octal} {item.owner}:{item.group} "{item.src}"->"{item.dst}"'
+        )
         if item.src.is_dir():
             copytree(item.src, item.dst, item.uid, item.gid, item.mode)
         else:

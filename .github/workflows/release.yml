@@ -1,0 +1,94 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "rel"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: astral-sh/setup-uv
+        uses: astral-sh/setup-uv@v7.1.3
+        with:
+          # The version of uv to install e.g., `0.5.0` Defaults to the version in pyproject.toml or 'latest'.
+          # version: # optional, default is
+          # Path to a file containing the version of uv to install. Defaults to searching for uv.toml and if not found pyproject.toml.
+          # version-file: # optional, default is
+          # The version of Python to set UV_PYTHON to
+          # python-version: # optional
+          # Use uv venv to activate a venv ready to be used by later steps.
+          # activate-environment: # optional, default is false
+          # The directory to execute all commands in and look for files such as pyproject.toml
+          # working-directory: # optional, default is ${{ github.workspace }}
+          # The checksum of the uv version to install
+          # checksum: # optional
+          # Used to increase the rate limit when retrieving versions and downloading uv.
+          # github-token: # optional, default is ${{ github.token }}
+          # Enable uploading of the uv cache
+          # enable-cache: # optional, default is auto
+          # Glob pattern to match files relative to the working directory to control the cache.
+          cache-dependency-glob: | # optional, default is **/*requirements*.txt
+            pyproject.toml
+            uv.lock
+
+          # Whether to restore the cache if found.
+          # restore-cache: # optional, default is true
+          # Whether to save the cache after the run.
+          # save-cache: # optional, default is true
+          # Suffix for the cache key
+          # cache-suffix: # optional
+          # Local path to store the cache.
+          # cache-local-path: # optional, default is
+          # Prune cache before saving.
+          # prune-cache: # optional, default is true
+          # Upload managed Python installations to the Github Actions cache.
+          # cache-python: # optional, default is false
+          # Ignore when nothing is found to cache.
+          # ignore-nothing-to-cache: # optional, default is false
+          # Ignore when the working directory is empty.
+          # ignore-empty-workdir: # optional, default is false
+          # Custom path to set UV_TOOL_DIR to.
+          # tool-dir: # optional
+          # Custom path to set UV_TOOL_BIN_DIR to.
+          # tool-bin-dir: # optional
+          # URL to the manifest file containing available versions and download URLs.
+          # manifest-file: # optional
+          # Add problem matchers.
+          # add-problem-matchers: # optional, default is true
+          # Resolution strategy to use when resolving version ranges. 'highest' uses the latest compatible version, 'lowest' uses the oldest compatible version.
+          # resolution-strategy: # optional, default is highest
+
+      - name: Build package
+        run: uv build
+
+      - name: Read version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(grep -oP '^\s*version\s*=\s*"\K[^"]*' pyproject.toml)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Delete 'release' tag
+        run: |
+          NEW_TAG="v${{ steps.version.outputs.version }}"
+          # Delete remote 'rel' tag
+          git push origin :refs/tags/rel || true
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifactErrorsFailBuild: true
+          artifacts: dist/*.whl
+          commit: ${{ github.sha }}
+          immutableCreate: true
+          omitBody: true
+          tag: ${{ steps.version.outputs.version }}

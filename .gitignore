@@ -1,6 +1,6 @@
 testdir
-**/__pycache__
+__pycache__
 .*
-dist
+/dist
 
 !.github

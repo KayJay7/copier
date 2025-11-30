@@ -1,6 +1,12 @@
 ## Copicat
 
-`copicat` is a simple automated file copying utility, meant to simplify some common file management needs. The project was born when trying to store dotfiles and system configuration files in a repository, changing ownership and permissions of files as needed. It then expanded to be able to easily move media files between folders.
+`copicat` is a simple automated file copying utility, meant to simplify some common file management needs. The project was born when trying to store dotfiles and system configuration files in a repository, changing ownership and permissions of files as needed. It then expanded to also be used to easily move media files between folders.
+
+Get it from [pypi](https://pypi.org/project/copicat/) using your favourite python package manager!
+* UV: `uv tool install copicat`
+* pip: `pip install copicat`
+
+---
 
 Common problems solved by `copicat`:
 * Copy files from sparse locations to a new location, with configured common permissions

@@ -115,6 +115,10 @@ alvise:
   0:
     666:
       "testdir/source2/b.txt": "testdir/dest2/inner/k.txt"
+# root:
+#   root:
+#     644:
+#       backup/fstab: /etc/fstab
 ```
 
 > [!NOTE]

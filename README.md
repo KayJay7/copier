@@ -84,7 +84,7 @@ if missing, lsb+x permissions will be used:
 ```
 
 > [!WARNING]
-> **DID YOU skip the previous warning?** Make sure you didn't skip it, as this might cause you to remove permissions from your own files!
+> **DID YOU skip the previous warning?** Make sure you didn't skip it, as this might cause you to lose access to your own files!
 
 Example of a full config file, take your time to read it and understand what it means:
 ```yml
@@ -112,7 +112,7 @@ alvise:
 ```
 
 > [!NOTE]
-> `copier` will never create parent directories, this will print an error
+> `copier` will never create parent directories. If a destination's parent directory is missing, it will print an error.
 
 ### Copy `in` mode
 

@@ -13,8 +13,8 @@ Common problems solved by `copicat`:
   * `copicat in [-h] [-D] [config] [owner] [group] [mode]`
 * Copy those files back to the original location, with per file permissions
   * `copicat out [-h] [-D] [config]`
-* Copy or hardlink all files with a certain mime type from a location to another
-  * `copicat type [-h] [-k] [-H] [-T] [-D] source dest [mime]`
+* Copy or hardlink all files of a certain file type from a location to another
+  * `copicat type [-h] [-m [MIME ...]] [-e [EXTENSION ...]] [-k] [-H] [-T] [-D] source dest`
 
 You can use the `--dry-run` option, to test your configuration without overwriting files by accident. You can also use it to decide if the tool works for you!
 
@@ -41,7 +41,7 @@ The basic structure is:
 user:
     group:
         mode:
-            /path/to/source: path/to/target
+            /path/to/target: path/to/source
 ```
 
 > [!IMPORTANT]
@@ -143,6 +143,7 @@ options:
 The `in` subcommand is the simplest mode of operation, and the opposite of the `out` subcommand, it's meant as "copying from source locations ***in***to the storage location".
 The command takes in input the the owner, group, and mode (in the same format as the config file).
 This will copy all files from their source location to the target location, using the user, group, and mode received from cli, ignoring those specified in the config file.
+If no user and group are specified, copicat will use the current uid and gid.
 
 ### Copy `out` mode
 
@@ -165,17 +166,19 @@ Remember that you might need root access to change ownership and permissions of 
 ### Copy `type` mode
 
 ```
-usage: copicat type [-h] [-k] [-H] [-T] [-D] source dest [mime]
+usage: copicat type [-h] [-m [MIME ...]] [-e [EXTENSION ...]] [-k] [-H] [-T] [-D] source dest
 
 positional arguments:
   source                Source directory or file
   dest                  Destination directory
-  mime                  Half or full of mime type to copy
-                        (i.e.: both "video" and "video/x-matroska" will match a file with mimetype
-                        "video/x-matroska"). Default is "video"
 
 options:
   -h, --help            show this help message and exit
+  -m, --mimes [MIME ...]
+                        Half or full of mime types to copy (i.e.: both "video" and "video/x-matroska"
+                        will match a file with mimetype "video/x-matroska")
+  -e, --extensions [EXTENSION ...]
+                        Extensions with point of the files to copy (i.e.: ".srt" will match "subs.srt")
   -k, --keep-structure  Keep the directory structure in the destination.
                         Without this, only the files from the first level will be copied
   -H, --hard-link       Hard-link files into destination instead of copying
@@ -184,8 +187,9 @@ options:
   -D, --dry-run         Print the operation without performing any action
 ```
 
-`type` mode copies based on the files mime types instead of using a config file. This mode doesn't manage owners and permission. It's mostly intended to easily move media files around (e.g.: copy all the videos from `/removable-media/movie-folder` to `/jellyfin/movies` keeping the directory structure).
-The command takes in input the source and destination, and a mimetype ("video" by default). The specified type can be either the first half (e.g.: "text" to match all text format) or the full type (e.g.: "text/markdown" to only match markdown files).
+`type` mode copies based on the files types instead of using a config file. This mode doesn't manage owners and permission. It's mostly intended to easily move media files around (e.g.: copy all the videos and subtitles from `/removable-media/movie-folder` to `/jellyfin/movies` keeping the directory structure).
+The command takes in input the source and destination, and you can specify a list of mime types or extensions. The specified type can be either the first half (e.g.: "text" to match all text format) or the full type (e.g.: "text/markdown" to only match markdown files). The extensions must include the leading point (e.g.: ".srt" to match subtitle files).
+If any of the types or any of the extensions matches, the file will be copied.
 
 > [!TIP]
 > You can use the `--dry-types` option to check the types detected by the tool before trying to copy. Different mimetype guessing libraries might detect less specific or even different types for the same file.

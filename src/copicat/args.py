@@ -1,4 +1,5 @@
 import argparse
+import os
 from pathlib import Path
 from typing import Literal, NamedTuple, cast
 
@@ -70,14 +71,14 @@ _parser_in.add_argument(
     "owner",
     nargs="?",
     help="Username or UID of the owner of the files",
-    default="admin",
+    default=os.getuid(),
 )
 
 _parser_in.add_argument(
     "group",
     nargs="?",
     help="Group name or GID of the group of the files",
-    default="admin",
+    default=os.getgid(),
 )
 
 _parser_in.add_argument(
